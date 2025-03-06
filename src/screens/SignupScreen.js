@@ -1,21 +1,31 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { TextInput, Button, Text, Card } from "react-native-paper";
-import { signup } from "../services/authService";
+import { useDispatch, useSelector } from "react-redux";
+import { signupUser } from "../redux/slices/authSlice";
 
 export default function SignupScreen({ navigation }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
 
-  const handleSignup = async () => {
-    const result = await signup(name, email, password);
-    if (result.message === "User registered") {
-      Alert.alert("Success", "Account created! Please log in.");
-      navigation.navigate("Login");
-    } else {
-      Alert.alert("Error", "Signup failed");
+  const handleSignup = () => {
+console.log('✌️handleSignup --->');
+    if (!name || !email || !password) {
+      Alert.alert("Error", "All fields are required");
+      return;
     }
+
+    dispatch(signupUser({ name, email, password }))
+
+      .unwrap()
+      .then(() => {
+        Alert.alert("Success", "Account created! Please log in.");
+        navigation.navigate("Login");
+      })
+      .catch((err) => Alert.alert("Error", err));
   };
 
   return (
@@ -25,6 +35,8 @@ export default function SignupScreen({ navigation }) {
           <Text variant="headlineMedium" style={styles.title}>
             Sign Up
           </Text>
+
+          {error && <Text style={styles.errorText}>{error}</Text>}
 
           <TextInput
             label="Name"
@@ -52,7 +64,13 @@ export default function SignupScreen({ navigation }) {
             style={styles.input}
           />
 
-          <Button mode="contained" onPress={handleSignup} style={styles.button}>
+          <Button
+            mode="contained"
+            onPress={handleSignup}
+            style={styles.button}
+            loading={loading}
+            disabled={loading || !name || !email || !password}
+          >
             Sign Up
           </Button>
 
@@ -91,5 +109,10 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 10,
+  },
+  errorText: {
+    color: "red",
+    textAlign: "center",
+    marginBottom: 10,
   },
 });

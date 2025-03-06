@@ -2,21 +2,23 @@ import React, { useState } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { TextInput, Button, Text, Card } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { login } from "../services/authService";
 
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../redux/slices/authSlice";
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
 
-  const handleLogin = async () => {
-    const result = await login(email, password);
-    if (result.token) {
-      await AsyncStorage.setItem("userToken", result.token);
-      Alert.alert("Success", "Logged in!");
-      navigation.replace("Home");
-    } else {
-      Alert.alert("Error", "Invalid credentials");
-    }
+  const handleLogin = () => {
+    dispatch(loginUser({ email, password }))
+      .unwrap()
+      .then(() => {
+        Alert.alert("Success", "Logged in!");
+        navigation.replace("Home");
+      })
+      .catch((err) => Alert.alert("Error", err));
   };
 
   return (
