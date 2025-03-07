@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { TextInput, Button, Text, Card } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -9,17 +9,29 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
-  const { loading, error } = useSelector((state) => state.auth);
+  const { userToken,loading, error } = useSelector((state) => state.auth);
 
-  const handleLogin = () => {
+  const handleLogin = (navigation) => {
+   
     dispatch(loginUser({ email, password }))
       .unwrap()
-      .then(() => {
-        Alert.alert("Success", "Logged in!");
-        navigation.navigate("Home");
+      .then((token) => {
+        console.log("✌️ Navigating to Home with Token --->", token);
+        navigation.navigate("Home")
       })
-      .catch((err) => Alert.alert("Error", err));
+      .catch((err) => Alert.alert("Error", err || "Login failed"));
   };
+  
+  
+  
+  // useEffect(() => {
+  //   if (userToken && navigation) {
+  //     console.log("✌️ Navigating to Home, userToken:", userToken);
+  //   navigation.navigate('Home')
+  //   }
+  // }, [userToken, navigation]);
+  
+  
 
   return (
     <View style={styles.container}>
@@ -47,10 +59,11 @@ export default function LoginScreen({ navigation }) {
             style={styles.input}
           />
 
-          <Button mode="contained" onPress={handleLogin} style={styles.button}>
+          <Button mode="contained" onPress={()=>handleLogin(navigation)} style={styles.button}>
             Login
           </Button>
 
+      {error && <Text style={{ color: "red" }}>{error}</Text>}
           <Button mode="text" onPress={() => navigation.navigate("Signup")}>
             Don't have an account? Sign Up
           </Button>

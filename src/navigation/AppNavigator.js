@@ -1,26 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import { useDispatch, useSelector } from "react-redux";
+import { checkLoginStatus } from "../redux/slices/authSlice";
+
 import SignupScreen from "../screens/SignupScreen";
 import LoginScreen from "../screens/LoginScreen";
 import HomeScreen from "../screens/HomeScreen";
 import AddTaskScreen from "../screens/AddTaskScreen";
+import TaskDetailScreen from "../screens/TaskDetailScreen";
+
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
-  const [loading, setLoading] = useState(true);
-  const [userToken, setUserToken] = useState(null);
+  const { userToken, loading } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const checkLoginStatus = async () => {
-      const token = await AsyncStorage.getItem("userToken");
-      setUserToken(token);
-      setLoading(false);
-    };
-    checkLoginStatus();
-  }, []);
+    dispatch(checkLoginStatus()); // Ensure Redux fetches updated token
+  }, [dispatch]);
 
   if (loading) {
     return (
@@ -33,17 +32,14 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-       
-          <Stack.Screen name="Home" component={HomeScreen} />
-       
-        
-           <Stack.Screen name="Login" component={LoginScreen} />
-            
-            <Stack.Screen name="Signup" component={SignupScreen} />
-           
-            <Stack.Screen name="AddTask" component={AddTaskScreen} />
-         
       
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="AddTask" component={AddTaskScreen} />
+            <Stack.Screen name="TaskDetails" component={TaskDetailScreen} />
+       
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Signup" component={SignupScreen} />
+         
       </Stack.Navigator>
     </NavigationContainer>
   );

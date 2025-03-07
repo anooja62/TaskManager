@@ -1,31 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import { TextInput, Button, Text, Card } from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
-import { createTask } from "../redux/slices/taskSlice";
+import { createTask, updateTask } from "../redux/slices/taskSlice";
 
-export default function AddTaskScreen({ navigation }) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-
+export default function AddTaskScreen({ navigation, route }) {
+  const taskToEdit = route.params?.task; // Get task if editing
+  const [title, setTitle] = useState(taskToEdit?.title || ""); // Prefill title
+  const [description, setDescription] = useState(taskToEdit?.description || ""); // Prefill description
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.tasks);
 
-  const handleAddTask = () => {
+  const handleSubmit = () => {
     if (!title.trim() || !description.trim()) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
-    dispatch(createTask({ title, description }))
-      .unwrap()
-      .then(() => {
-        Alert.alert("Success", "Task added successfully!");
-        setTitle(""); // Clear input fields
-        setDescription("");
-        navigation.goBack(); // Navigate back to HomeScreen
-      })
-      .catch((err) => Alert.alert("Error", err || "Failed to add task"));
+    if (taskToEdit) {
+      // Edit Task
+      dispatch(updateTask({ id: taskToEdit._id, title, description }))
+        .unwrap()
+        .then(() => {
+          Alert.alert("Success", "Task updated successfully!");
+          navigation.goBack();
+        })
+        .catch((err) => Alert.alert("Error", err || "Failed to update task"));
+    } else {
+      // Add New Task
+      dispatch(createTask({ title, description }))
+        .unwrap()
+        .then(() => {
+          Alert.alert("Success", "Task added successfully!");
+          setTitle("");
+          setDescription("");
+          navigation.goBack();
+        })
+        .catch((err) => Alert.alert("Error", err || "Failed to add task"));
+    }
   };
 
   return (
@@ -33,7 +45,7 @@ export default function AddTaskScreen({ navigation }) {
       <Card style={styles.card}>
         <Card.Content>
           <Text variant="headlineMedium" style={styles.title}>
-            Add New Task
+            {taskToEdit ? "Edit Task" : "Add New Task"}
           </Text>
 
           <TextInput
@@ -56,12 +68,12 @@ export default function AddTaskScreen({ navigation }) {
 
           <Button
             mode="contained"
-            onPress={handleAddTask}
+            onPress={handleSubmit}
             loading={loading}
             disabled={loading}
             style={styles.button}
           >
-            Add Task
+            {taskToEdit ? "Update Task" : "Add Task"}
           </Button>
 
           {error && <Text style={styles.errorText}>{error}</Text>}

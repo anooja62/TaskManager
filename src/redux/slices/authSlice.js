@@ -9,13 +9,27 @@ const API_URL = "http://10.0.2.2:8000";
 export const loginUser = createAsyncThunk("auth/loginUser", async ({ email, password }, { rejectWithValue }) => {
   try {
     const response = await axios.post(`${API_URL}/api/auth/login`, { email, password });
-    await AsyncStorage.setItem("userToken", response.data.token);
-console.log('✌️response.data.token --->', response.data.token);
-    return response.data.token;
+    
+    console.log("✌️ New Token from API --->", response.data.token);
+
+    await AsyncStorage.setItem("userToken", response.data.token); // Store new token
+    
+
+    return response.data.token // Return token from AsyncStorage to Redux
   } catch (error) {
-    return rejectWithValue(error.response.data.message);
+    return rejectWithValue(error.response?.data?.message || "Login failed");
   }
 });
+
+
+
+
+export const checkLoginStatus = createAsyncThunk("auth/checkLoginStatus", async () => {
+  const token = await AsyncStorage.getItem("userToken"); // Always fetch latest token
+  console.log("✌️ Checking Login Status, Retrieved Token --->", token);
+  return token;
+});
+
 
 // Async function for user signup
 export const signupUser = createAsyncThunk("auth/signupUser", async ({ name, email, password }, { rejectWithValue }) => {
@@ -59,6 +73,9 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(checkLoginStatus.fulfilled, (state, action) => {
+        state.userToken = action.payload;
+      })
       .addCase(signupUser.pending, (state) => { state.loading = true; })
       .addCase(signupUser.fulfilled, (state) => {
         state.loading = false;
@@ -69,7 +86,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(logoutUser.fulfilled, (state) => {
-        state.token = null;
+        state.userToken = null; // Ensure Redux state is cleared
       });
   },
 });
