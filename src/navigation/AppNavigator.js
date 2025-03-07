@@ -6,7 +6,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import SignupScreen from "../screens/SignupScreen";
 import LoginScreen from "../screens/LoginScreen";
 import HomeScreen from "../screens/HomeScreen";
-
+import AddTaskScreen from "../screens/AddTaskScreen";
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
@@ -33,16 +33,17 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {userToken ? (
+       
           <Stack.Screen name="Home" component={HomeScreen} />
-        ) : (
-          <>
+       
+        
            <Stack.Screen name="Login" component={LoginScreen} />
             
             <Stack.Screen name="Signup" component={SignupScreen} />
            
-          </>
-        )}
+            <Stack.Screen name="AddTask" component={AddTaskScreen} />
+         
+      
       </Stack.Navigator>
     </NavigationContainer>
   );

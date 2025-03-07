@@ -16,7 +16,7 @@ export default function LoginScreen({ navigation }) {
       .unwrap()
       .then(() => {
         Alert.alert("Success", "Logged in!");
-        navigation.replace("Home");
+        navigation.navigate("Home");
       })
       .catch((err) => Alert.alert("Error", err));
   };

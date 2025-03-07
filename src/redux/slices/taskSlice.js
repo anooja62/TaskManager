@@ -2,13 +2,13 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_URL = "http://localhost:5000";
 
+const API_URL = "http://10.0.2.2:8000";
 // Fetch tasks
 export const fetchTasks = createAsyncThunk("tasks/fetchTasks", async (_, { rejectWithValue }) => {
   try {
     const token = await AsyncStorage.getItem("userToken");
-    const response = await axios.get(API_URL, {
+    const response = await axios.get(`${API_URL}/api/tasks/all-taskes`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;
@@ -21,7 +21,7 @@ export const fetchTasks = createAsyncThunk("tasks/fetchTasks", async (_, { rejec
 export const createTask = createAsyncThunk("tasks/createTask", async ({ title, description }, { rejectWithValue }) => {
   try {
     const token = await AsyncStorage.getItem("userToken");
-    const response = await axios.post(API_URL, { title, description }, {
+    const response = await axios.post(`${API_URL}/api/tasks`, { title, description }, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return response.data;

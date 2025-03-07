@@ -1,69 +1,66 @@
-import React, { useEffect, useState } from "react";
-import { View, FlatList, Alert, StyleSheet } from "react-native";
-import { Appbar, Button, Card, Text, FAB } from "react-native-paper";
+import React, { useEffect } from "react";
+import { View, FlatList, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import { Appbar, Card, Text, FAB, useTheme } from "react-native-paper";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchTasks } from "../redux/slices/taskSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
-
-const API_URL = "https://your-api.com"; // Replace with your backend URL
 
 export default function HomeScreen({ navigation }) {
-  const [tasks, setTasks] = useState([]);
-
-  // Fetch tasks from backend
-  const fetchTasks = async () => {
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      const response = await axios.get(`${API_URL}/tasks`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTasks(response.data);
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Failed to fetch tasks");
-    }
-  };
+  const theme = useTheme();
+  const dispatch = useDispatch();
+  const { tasks, loading, error } = useSelector((state) => state.tasks);
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    dispatch(fetchTasks()); // Fetch tasks from Redux store on mount
+    const unsubscribe = navigation.addListener("focus", () => {
+      dispatch(fetchTasks()); // Refresh tasks when navigating back
+    });
 
-  // Logout function
+    return unsubscribe; // Cleanup listener when component unmounts
+  }, [navigation]);
+
+  // Logout Function with Confirmation
   const handleLogout = async () => {
-    await AsyncStorage.removeItem("userToken");
-    navigation.replace("Login");
+    Alert.alert(
+      "Logout", 
+      "Are you sure you want to log out?", 
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Logout", onPress: async () => {
+            await AsyncStorage.removeItem("userToken");
+            navigation.replace("Login");
+          }, style: "destructive" }
+      ]
+    );
   };
 
   return (
     <View style={styles.container}>
-      {/* Top App Bar */}
-      <Appbar.Header style={styles.header}>
+      {/* App Bar */}
+      <Appbar.Header style={{ backgroundColor: theme.colors.primary }}>
         <Appbar.Content title="Task Manager" />
         <Appbar.Action icon="logout" onPress={handleLogout} />
       </Appbar.Header>
 
-      {/* Task List */}
-      {tasks.length === 0 ? (
-        <View style={styles.centeredView}>
-          <Text variant="titleLarge">No tasks available</Text>
-          <Text>Add a task to get started!</Text>
-        </View>
+      {/* Loading Indicator */}
+      {loading ? (
+        <ActivityIndicator size="large" color={theme.colors.primary} style={styles.loader} />
+      ) : error ? (
+        <Text style={styles.errorText}>Error: {error}</Text>
       ) : (
         <FlatList
           data={tasks}
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.listContainer}
           renderItem={({ item }) => (
-            <Card
-              style={styles.card}
-              mode="elevated"
-              onPress={() => navigation.navigate("TaskDetails", { task: item })}
-            >
+            <Card style={styles.card}>
               <Card.Title title={item.title} titleStyle={styles.cardTitle} />
               <Card.Content>
                 <Text>{item.description}</Text>
               </Card.Content>
             </Card>
           )}
+          ListEmptyComponent={<Text style={styles.noTasks}>No tasks found</Text>}
         />
       )}
 
@@ -78,30 +75,37 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f4f4f4",
   },
-  header: {
-    backgroundColor: "#6200ea",
-  },
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   listContainer: {
     padding: 20,
   },
+  loader: {
+    marginTop: 50,
+  },
+  errorText: {
+    color: "red",
+    textAlign: "center",
+    marginTop: 20,
+  },
   card: {
-    marginBottom: 10,
+    marginBottom: 12,
     borderRadius: 10,
     backgroundColor: "#fff",
     elevation: 3,
   },
   cardTitle: {
     fontWeight: "bold",
+    color: "#6200ea",
   },
   fab: {
     position: "absolute",
     bottom: 20,
     right: 20,
     backgroundColor: "#6200ea",
+  },
+  noTasks: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+    color: "#666",
   },
 });
