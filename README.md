@@ -98,3 +98,6 @@ Backend (Node.js, Express, MongoDB)
  
   expo build:android
   
+
+Backend Deployment: https://task-manager-backend-liart-nine.vercel.app/
+Expo Go APK Link: https://expo.dev/artifacts/eas/2gktViEGSCBmGdvDfC5k7c.apk
