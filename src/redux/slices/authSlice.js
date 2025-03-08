@@ -2,9 +2,9 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-//const API_URL = "http://localhost:8000";
-const API_URL = "http://10.0.2.2:8000";
 
+const API_URL = "https://task-manager-backend-liart-nine.vercel.app";
+//onst API_URL = "http://10.0.2.2:8000";
 
 export const loginUser = createAsyncThunk("auth/loginUser", async ({ email, password }, { rejectWithValue }) => {
   try {
@@ -26,7 +26,7 @@ export const loginUser = createAsyncThunk("auth/loginUser", async ({ email, pass
 
 export const checkLoginStatus = createAsyncThunk("auth/checkLoginStatus", async () => {
   const token = await AsyncStorage.getItem("userToken"); // Always fetch latest token
-  console.log("✌️ Checking Login Status, Retrieved Token --->", token);
+  //console.log("✌️ Checking Login Status, Retrieved Token --->", token);
   return token;
 });
 
@@ -38,15 +38,24 @@ console.log('✌️signupUser --->');
   try {
     console.log('✌️API_URL}/api/auth/signup --->', `${API_URL}/api/auth/signup`);
     const response = await axios.post(`${API_URL}/api/auth/signup`, { name, email, password });
-
+    console.log('✌️response.data.message --->', response.data.message);
 
     return response.data.message;
+
 
   } catch (error) {
     return rejectWithValue(error.response.data.message);
   }
 });
-
+// ✅ Reset Password
+export const resetPassword = createAsyncThunk("auth/resetPassword", async ({ email, newPassword }, { rejectWithValue }) => {
+  try {
+    const response = await axios.post(`${API_URL}/api/auth/reset-password`, { email, newPassword });
+    return response.data.message;
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || "Password reset failed");
+  }
+});
 // Async function for user logout
 export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
   await AsyncStorage.removeItem("userToken");
@@ -87,6 +96,20 @@ const authSlice = createSlice({
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.userToken = null; // Ensure Redux state is cleared
+      })
+      .addCase(resetPassword.pending, (state) => {
+        state.loading = true;
+        state.successMessage = null;
+        state.error = null;
+      })
+      .addCase(resetPassword.fulfilled, (state, action) => {
+        state.loading = false;
+        state.successMessage = action.payload;
+        state.error = null;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

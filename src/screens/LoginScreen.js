@@ -67,6 +67,13 @@ export default function LoginScreen({ navigation }) {
           <Button mode="text" onPress={() => navigation.navigate("Signup")}>
             Don't have an account? Sign Up
           </Button>
+          <Button
+            mode="text"
+            onPress={() => navigation.navigate("ResetPassword", { email })}
+            disabled={!email.trim()} // Disable if email is empty
+          >
+            Forgot Password?
+          </Button>
         </Card.Content>
       </Card>
     </View>

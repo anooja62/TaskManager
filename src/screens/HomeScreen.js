@@ -18,7 +18,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTasks, deleteTask } from "../redux/slices/taskSlice"; // Import deleteTask action
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { logoutUser ,checkLoginStatus} from "../redux/slices/authSlice";
+import { logoutUser, checkLoginStatus } from "../redux/slices/authSlice";
 export default function HomeScreen({ navigation }) {
   const theme = useTheme();
   const dispatch = useDispatch();
@@ -28,13 +28,20 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     dispatch(checkLoginStatus()); // Ensure Redux fetches updated token
   }, [dispatch]);
-  useEffect(() => {
-    console.log('✌️userToken --->', userToken);
-    if (!userToken) {
 
-      navigation.replace("Login"); // Navigate only when Redux clears the token
-    }
-  }, [userToken, navigation]);
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = await AsyncStorage.getItem("userToken");
+
+      if (!token) {
+        dispatch(checkLoginStatus());
+        navigation.replace("Login");
+      }
+    };
+
+    checkAuth();
+  }, [navigation, dispatch, userToken]);
+
   useEffect(() => {
     dispatch(fetchTasks());
     const unsubscribe = navigation.addListener("focus", () => {

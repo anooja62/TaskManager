@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "TaskManager",
-    "slug": "TaskManager",
+    "slug": "task-manager",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -19,10 +19,17 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.anoojam141.taskmanager"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8647b023-09b2-418f-86a6-0ff561d03cff"
+      }
+    },
+    "owner": "anoojam141"
   }
 }
